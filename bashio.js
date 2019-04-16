@@ -156,10 +156,52 @@ function handleCommand() {
     // ls
     else if (curr_line.substr(0, 2) == "ls") {
         // TODO arguments
+        let args = curr_line.split(" ");
+        let a = false;
+        let A = false;
+        let l = false;
+        let F = false;
+        if (args.length >= 2) {
+            let str = args[1].trim();
+            if (str.charAt() == "-" && str.length >= 2) {
+                for (let i = 1; i < str.length; i++) {
+                    let char = str.charAt(i);
+                    switch (char) {
+                        case "a":
+                            a = true;
+                            break;
+                        case "A":
+                            A = true;
+                            break;
+                        case "l":
+                            l = true;
+                            break;
+                        case "F":
+                            F = true;
+                            break;
+                        default:
+                            continue;
+                    }
+                }
+            }
+        }
+
         let str = "";
+        if(a && F){
+            str += "./ ../ "
+        } else if (a){
+            str += ". .. "
+        }
         dir.getChildren().forEach(element => {
-            str += element.getName();
-            str += " ";
+            // TODO -l long listing flag //
+            if (element.getName().trim().charAt() != "." || a || A) {
+                str += element.getName();
+                if(F && element.getType() == FILE_TYPES.DIR){
+                    str += "/";
+                } 
+                // TODO CHECK PERMISSIONS AND PRINT * //
+                str += " ";
+            }
         });
         newLine(str);
     }
