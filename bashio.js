@@ -116,9 +116,7 @@ function element_init() {
     element.style.fontFamily = "monospace";
     user = element.getAttribute("user");
     host = element.getAttribute("host");
-    let a = document.createTextNode("--This is a simulated terminal environment.--");
-    element.appendChild(a);
-    newLine("--Type '!' to view implemented commands.-----");
+    clear();
     newPromptLine();
 }
 
@@ -152,6 +150,7 @@ function handleCommand() {
         newLine("Supported Commands:");
         newLine("cd [dir]");
         newLine("ls [-aAlF]");
+        newLine("clear");
     }
     // ls
     else if (curr_line.substr(0, 2) == "ls") {
@@ -209,6 +208,9 @@ function handleCommand() {
     else if (curr_line.substr(0, 2) == "cd") {
         // TODO
     }
+    else if (curr_line.substr(0,5) == "clear"){
+        clear();
+    }
     newPromptLine();
 }
 
@@ -233,4 +235,18 @@ function newPromptLine() {
     curr_line = "";
     element.appendChild(br);
     element.appendChild(t);
+}
+
+/**
+ * clear
+ * removes all children of terminal element
+ * then prints out info message
+ */
+function clear(){
+    while(element.firstChild){
+        element.removeChild(element.firstChild);
+    }
+    let a = document.createTextNode("--This is a simulated terminal environment.--");
+    element.appendChild(a);
+    newLine("--Type '!' to view implemented commands.-----");
 }
