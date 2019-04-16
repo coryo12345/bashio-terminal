@@ -9,3 +9,7 @@ terminal simulator for the browser!
 # Options
 1. Adding the 'user' property to the div will change the default user.
 2. Adding the 'host' property to the div will change the default host.
+
+# TODO
+1. add options for sizes
+2. add options for colors
