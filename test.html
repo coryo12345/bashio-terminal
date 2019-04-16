@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>bashio test</title>
+</head>
+
+<body>
+    <!--<script src="bashio.js"></script>-->
+    <div id="bashio-terminal" user="user1" host="machine1"></div>
+    <script>
+        /**
+         *  var element
+         *  the bashio terminal html element
+         */
+        var element = document.getElementById("bashio-terminal");
+        // REMOVE INSTANTIATION BEFORE PRODUCTION //
+
+        /**
+         *  var user
+         *  the current user to use
+         */
+        var user = "user";
+        var host = "host";
+        var dir = "~";
+        var ELEMENT_SELECTED = false;
+        var curr_line = "";
+
+        function mainLoop() {
+            let lastLine = element.lastChild;
+            lastLine.textContent = `${user}@${host} ${dir}$ ${curr_line}`;
+            //console.log(lastLine);
+        }
+
+        window.addEventListener("DOMContentLoaded", (ev) => {
+            element = document.getElementById("bashio-terminal");
+            element_init();
+            setInterval(mainLoop, 1000 / 15);
+        });
+
+        document.addEventListener("click", (ev) => {
+            let rect = element.getBoundingClientRect();
+            if (ev.clientX >= rect.left && ev.clientX <= rect.right && ev.clientY >= rect.top && ev.clientY <= rect.bottom) {
+                ELEMENT_SELECTED = true;
+            } else {
+                ELEMENT_SELECTED = false;
+            }
+        });
+
+        document.addEventListener("keydown", (ev) => {
+            if (!ELEMENT_SELECTED) {
+                return;
+            }
+            ev = ev || window.event;
+            var code = ev.which || ev.keyCode;
+            // pressed enter
+            if (code == 13){
+                handleCommand();
+            }
+            // delete or backspace
+            if (code == 8 || code == 46) {
+                curr_line = curr_line.substring(0, curr_line.length - 1);
+                return;
+            }
+        });
+
+        document.addEventListener("keypress", (ev) => {
+            if (!ELEMENT_SELECTED) {
+                return;
+            }
+            ev = ev || window.event;
+            var code = ev.which || ev.keyCode;
+            if(code == 127){
+                return;
+            }
+            // add the character
+            var str = String.fromCharCode(code);
+            curr_line += str;
+        });
+
+        function element_init() {
+            curr_line = "";
+            element.style.width = "900px";
+            element.style.height = "400px";
+            element.style.maxWidth = "900px";
+            element.style.maxHeight = "400px";
+            element.style.background = "black";
+            element.style.color = "white";
+            element.style.fontSize = "1.2em";
+            element.style.fontFamily = "monospace";
+            user = element.getAttribute("user");
+            host = element.getAttribute("host");
+            let a = document.createTextNode("--This is a simulated terminal environment.--");
+            element.appendChild(a);
+            newLine("--Type '!' to view implemented commands.-----");
+            newPromptLine();
+        }
+
+        /**
+         * handleCommand
+         * takes the current line and parses it for available commands
+         * then creates a new prompt line
+         */
+        function handleCommand(){
+            curr_line = curr_line.trim();
+            if(curr_line.substring(0,1) == "!"){
+                newLine("Supported Commands:");
+                newLine("cd [dir]");
+                newLine("ls [-aAlF]");
+            }
+            newPromptLine();
+        }
+
+        /**
+         * newLine
+         * @param str takes a string and prints it in the terminal
+         */
+        function newLine(str){
+            let br = document.createElement("br");
+            let t = document.createTextNode(str);
+            element.appendChild(br);
+            element.appendChild(t);
+        }
+
+        /**
+         * newPromptLine
+         * creates a new text node and resets the current line
+         */
+        function newPromptLine() {
+            let t = document.createTextNode(`${user}@${host} ${dir}$ `);
+            let br = document.createElement("br");
+            curr_line = "";
+            element.appendChild(br);
+            element.appendChild(t);
+        }
+    </script>
+</body>
+
+</html>
