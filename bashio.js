@@ -7,10 +7,11 @@ const FILE_TYPES = {
  * A tree data structure to keep track of directories
  */
 class Tree {
-    constructor(name, fileType) {
+    constructor(name, parent, fileType) {
         this.name = name;
         this.type = fileType;
         this.children = [];
+        this.parent = parent;
     }
 
     getName() {
@@ -27,6 +28,19 @@ class Tree {
 
     addChild(newChild) {
         this.children.push(newChild);
+    }
+
+    removeChild(child) {
+        let pos = this.children.indexOf(child);
+        if (pos !== -1) this.children.splice(pos, 1);
+    }
+
+    getParent() {
+        return this.parent;
+    }
+
+    setParent(node) {
+        this.parent = node;
     }
 }
 
@@ -125,13 +139,13 @@ function element_init() {
  * @return root node of tree
  */
 function directoryInit() {
-    let a = new Tree("file.txt", FILE_TYPES.FILE);
-    let aa = new Tree("notes.txt", FILE_TYPES.FILE);
-    let b = new Tree("my_stuff", FILE_TYPES.DIR);
+    var root = new Tree("~", null, FILE_TYPES.DIR);
+    root.setParent(root);
+    let a = new Tree("file.txt", root, FILE_TYPES.FILE);
+    let b = new Tree("my_stuff", root, FILE_TYPES.DIR);
+    let aa = new Tree("notes.txt", b, FILE_TYPES.FILE);
     b.addChild(aa);
-    let c = new Tree(".bashrc", FILE_TYPES.FILE);
-    let rr = [a, b, c];
-    var root = new Tree("~", FILE_TYPES.DIR);
+    let c = new Tree(".bashrc", root, FILE_TYPES.FILE);
     root.addChild(a);
     root.addChild(b);
     root.addChild(c);
@@ -186,18 +200,18 @@ function handleCommand() {
         }
 
         let str = "";
-        if(a && F){
+        if (a && F) {
             str += "./ ../ "
-        } else if (a){
+        } else if (a) {
             str += ". .. "
         }
         dir.getChildren().forEach(element => {
             // TODO -l long listing flag //
             if (element.getName().trim().charAt() != "." || a || A) {
                 str += element.getName();
-                if(F && element.getType() == FILE_TYPES.DIR){
+                if (F && element.getType() == FILE_TYPES.DIR) {
                     str += "/";
-                } 
+                }
                 // TODO CHECK PERMISSIONS AND PRINT * //
                 str += " ";
             }
@@ -206,10 +220,37 @@ function handleCommand() {
     }
     // cd
     else if (curr_line.substr(0, 2) == "cd") {
-        // TODO
+        if (curr_line.split(" ").length < 2) {
+            newPromptLine();
+            return;
+        }
+        let target = curr_line.split(" ")[1];
+        if(target == ".."){
+            dir = dir.getParent();
+            newPromptLine();
+            return;
+        }
+        let chi = dir.getChildren();
+        let found = false;
+        for (let i = 0; i < chi.length; i++) {
+            if (target === chi[i].getName()) {
+                if (chi[i].getType() != FILE_TYPES.DIR) {
+                    newLine(`bash: cd: ${chi[i].getName()}: Not a directory`);
+                } else {
+                    dir = chi[i];
+                }
+                found = true;
+            }
+        }
+        if(!found){
+            newLine(`bash: cd: ${target}: No such file or directory`);
+        }
     }
-    else if (curr_line.substr(0,5) == "clear"){
+    else if (curr_line.substr(0, 5) == "clear") {
         clear();
+    }
+    else {
+        newLine(`bash: ${curr_line.split(" ")[0]}: command not found`);
     }
     newPromptLine();
 }
@@ -242,8 +283,8 @@ function newPromptLine() {
  * removes all children of terminal element
  * then prints out info message
  */
-function clear(){
-    while(element.firstChild){
+function clear() {
+    while (element.firstChild) {
         element.removeChild(element.firstChild);
     }
     let a = document.createTextNode("--This is a simulated terminal environment.--");
