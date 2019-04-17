@@ -64,7 +64,7 @@ var dir = root_tree;
 
 function mainLoop() {
     let lastLine = element.lastChild;
-    lastLine.textContent = `${user}@${host} ${dir.getName()}$ ${curr_line}`;
+    lastLine.textContent = `${user}@${host}:${dir.getName()}$ ${curr_line}`;
     //console.log(lastLine);
 }
 
@@ -124,6 +124,7 @@ function element_init() {
     element.style.height = "400px";
     element.style.maxWidth = "900px";
     element.style.maxHeight = "400px";
+    element.style.overflowY = "auto";
     element.style.background = "black";
     element.style.color = "white";
     element.style.fontSize = "1.2em";
@@ -159,8 +160,12 @@ function directoryInit() {
  */
 function handleCommand() {
     curr_line = curr_line.trim();
+    if(curr_line.length == 0){
+        newPromptLine();
+        return;
+    }
     // help message
-    if (curr_line.substring(0, 1) == "!") {
+    else if (curr_line.substring(0, 1) == "!") {
         newLine("Supported Commands:");
         newLine("cd [dir]");
         newLine("ls [-aAlF]");
@@ -220,7 +225,9 @@ function handleCommand() {
     }
     // cd
     else if (curr_line.substr(0, 2) == "cd") {
+        // no arguments - go to root
         if (curr_line.split(" ").length < 2) {
+            dir = root_tree;
             newPromptLine();
             return;
         }
@@ -271,11 +278,12 @@ function newLine(str) {
  * creates a new text node and resets the current line
  */
 function newPromptLine() {
-    let t = document.createTextNode(`${user}@${host} ${dir.getName()}$ `);
+    let t = document.createTextNode(`${user}@${host}:${dir.getName()}$ `);
     let br = document.createElement("br");
     curr_line = "";
     element.appendChild(br);
     element.appendChild(t);
+    updateScroll();
 }
 
 /**
@@ -290,4 +298,11 @@ function clear() {
     let a = document.createTextNode("--This is a simulated terminal environment.--");
     element.appendChild(a);
     newLine("--Type '!' to view implemented commands.-----");
+}
+
+/**
+ * scrolls terminal to bottom
+ */
+function updateScroll(){
+    element.scrollTop = element.scrollHeight;
 }
