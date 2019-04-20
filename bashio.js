@@ -1,3 +1,10 @@
+/**
+ * TODO
+ *  - permissions
+ *  - chmod
+ *  - -l flag for ls
+ */
+
 const FILE_TYPES = {
     FILE: 'file',
     DIR: 'dir',
