@@ -27,6 +27,7 @@ class Tree {
     }
 
     addChild(newChild) {
+        newChild.setParent(this);
         this.children.push(newChild);
     }
 
@@ -160,19 +161,23 @@ function directoryInit() {
  */
 function handleCommand() {
     curr_line = curr_line.trim();
-    if(curr_line.length == 0){
+    if (curr_line.length == 0) {
         newPromptLine();
         return;
     }
     // help message
-    else if (curr_line.substring(0, 1) == "!") {
+    else if (curr_line.split(" ")[0] == "!") {
         newLine("Supported Commands:");
         newLine("cd [dir]");
         newLine("ls [-aAlF]");
+        newLine("touch <file>");
+        newLine("mkdir <new directory>");
+        newLine("rmdir <directory name>");
+        newLine("rm [-r] <name>");
         newLine("clear");
     }
     // ls
-    else if (curr_line.substr(0, 2) == "ls") {
+    else if (curr_line.split(" ")[0] == "ls") {
         // TODO arguments
         let args = curr_line.split(" ");
         let a = false;
@@ -224,7 +229,7 @@ function handleCommand() {
         newLine(str);
     }
     // cd
-    else if (curr_line.substr(0, 2) == "cd") {
+    else if (curr_line.split(" ")[0] == "cd") {
         // no arguments - go to root
         if (curr_line.split(" ").length < 2) {
             dir = root_tree;
@@ -232,7 +237,7 @@ function handleCommand() {
             return;
         }
         let target = curr_line.split(" ")[1];
-        if(target == ".."){
+        if (target == "..") {
             dir = dir.getParent();
             newPromptLine();
             return;
@@ -249,12 +254,102 @@ function handleCommand() {
                 found = true;
             }
         }
-        if(!found){
+        if (!found) {
             newLine(`bash: cd: ${target}: No such file or directory`);
         }
     }
-    else if (curr_line.substr(0, 5) == "clear") {
+    else if (curr_line.split(" ")[0] == "clear") {
         clear();
+    }
+    else if (curr_line.split(" ")[0] == "touch") {
+        if (curr_line.split(" ").length >= 2) {
+            let str = curr_line.split(" ")[1];
+            let node = new Tree(str, dir, FILE_TYPES.FILE);
+            dir.addChild(node);
+        }
+        else {
+            newLine(`touch: missing file operand`);
+            newPromptLine();
+            return;
+        }
+    }
+    else if (curr_line.split(" ")[0] == "mkdir") {
+        if (curr_line.split(" ").length >= 2) {
+            let str = curr_line.split(" ")[1];
+            let node = new Tree(str, dir, FILE_TYPES.DIR);
+            dir.addChild(node);
+        }
+        else {
+            newLine(`mkdir: missing operand`);
+            newPromptLine();
+            return;
+        }
+    }
+    else if (curr_line.split(" ")[0] == "rmdir") {
+        if (curr_line.split(" ").length >= 2) {
+            let str = curr_line.split(" ")[1];
+            let ch = dir.getChildren();
+            for (let i = 0; i < ch.length; i++) {
+                let d = ch[i];
+                if (d.getName() == str) {
+                    if (d.getType() == FILE_TYPES.DIR) {
+                        if (d.getChildren().length == 0) {
+                            dir.removeChild(d);
+                        }
+                        else {
+                            newLine(`rmdir: failed to remove '${str}': Directory not empty`);
+                            newPromptLine();
+                            return;
+                        }
+                    }
+                    else {
+                        newLine(`rmdir: failed to remove '${str}': Not a directory`);
+                        newPromptLine();
+                        return;
+                    }
+                }
+            }
+        }
+        else {
+            newLine(`rmdir: missing operand`);
+            newPromptLine();
+            return;
+        }
+    }
+    else if (curr_line.split(" ")[0] == "rm") {
+        if (curr_line.split(" ").length >= 2) {
+            let dir_bool = false;
+            let str = "";
+            if (curr_line.split(" ")[1] == "-r") {
+                dir_bool = true;
+                str = curr_line.split(" ")[2];
+            }
+            else {
+                str = curr_line.split(" ")[1];
+            }
+            let ch = dir.getChildren();
+            for (let i = 0; i < ch.length; i++) {
+                let d = ch[i];
+                if (d.getName() == str) {
+                    if (dir_bool && d.getType() == FILE_TYPES.DIR) {
+                        dir.removeChild(d);
+                    }
+                    else if (!dir_bool && d.getType() == FILE_TYPES.FILE) {
+                        dir.removeChild(d);
+                    }
+                    else {
+                        newLine(`rm: cannot remove '${str}': Is a directory`);
+                        newPromptLine();
+                        return;
+                    }
+                }
+            }
+        }
+        else {
+            newLine(`rm: missing operand`);
+            newPromptLine();
+            return;
+        }
     }
     else {
         newLine(`bash: ${curr_line.split(" ")[0]}: command not found`);
@@ -303,6 +398,6 @@ function clear() {
 /**
  * scrolls terminal to bottom
  */
-function updateScroll(){
+function updateScroll() {
     element.scrollTop = element.scrollHeight;
 }
